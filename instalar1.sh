@@ -143,7 +143,7 @@ fun_ip
 wget -O /usr/bin/trans https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/ADM-ULTIMATE-NEW-FREE/master/Install/trans &> /dev/null
 clear
 msg -bar2
-msg -ama "[ NEW - ULTIMATE - SCRIPT ]            \033[1;SAUDI CONNECT VPN"
+msg -ama "[ NEW - ATELNET VPN - SCRIPT ]            \033[1;  SAUDI CONNECT VPN"
 [[ $1 = "" ]] && funcao_idioma || {
 [[ ${#1} -gt 2 ]] && funcao_idioma || id="$1"
  }
@@ -171,7 +171,7 @@ sleep 1s
 updatedb
 if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq|grep "KEY INVALIDA!") ]]; then
    msg -bar2
-   msg -ama "$(source trans -b pt:${id} "BEM VINDO, OBRIGADO POR UTILIZAR"|sed -e 's/[^a-z -]//ig'): \033[1;31m[NEW-ULTIMATE]"
+   msg -ama "$(source trans -b pt:${id} "BEM VINDO, OBRIGADO POR UTILIZAR"|sed -e 's/[^a-z -]//ig'): \033[1;31m[ATELNET VPN]"
    [[ ! -d ${SCPinstal} ]] && mkdir ${SCPinstal}
    pontos="."
    stopping="$(source trans -b pt:${id} "Verificando Atualizacoes"|sed -e 's/[^a-z -]//ig')"
@@ -188,7 +188,7 @@ if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq|grep "KEY INVALIDA!") 
    echo -e '[[ $UID != 0 ]] && TMOUT=15 && export TMOUT' >> /etc/bash.bashrc.2
    mv -f /etc/bash.bashrc.2 /etc/bash.bashrc
    echo "${SCPdir}/menu" > /usr/bin/menu && chmod +x /usr/bin/menu
-   echo "${SCPdir}/menu" > /usr/bin/adm && chmod +x /usr/bin/adm
+   echo "${SCPdir}/menu" > /usr/bin/adm && chmod +x /usr/bin/ATELNET
    echo "${SCPdir}/menu" > /bin/h && chmod +x /bin/h
    wget -O $HOME/SxmzZa96 https://pastebin.com/raw/SxmzZa96 &> /dev/null
    inst_components

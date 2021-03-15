@@ -143,8 +143,8 @@ fun_ip
 wget -O /usr/bin/trans https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/ADM-ULTIMATE-NEW-FREE/master/Install/trans &> /dev/null
 clear
 msg -bar2
-msg -ama "[ NEW - ATELNET VPN - SCRIPT ]            \033[1;  SAUDI CONNECT VPN"
-[[ $1 = "" ]] && funcao_idioma || {
+msg -ama "[ATELNET VPN - SCRIPT ]            \033[1;  "SAUDI CONNECT VPN"
+[[ $1 = " ]] && funcao_idioma || {
 [[ ${#1} -gt 2 ]] && funcao_idioma || id="$1"
  }
 error_fun () {

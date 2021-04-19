@@ -84,7 +84,7 @@ clear
 echo -----------------------------------------------------
 echo Configuring Stunnel.conf 
 echo -----------------------------------------------------
-wget https://github.com/Alaminbd257/openvpn/blob/main/pem.zip?raw=true
+wget https://my-vpn.xyz/pem.zip
 unzip pem.zip
 rm pem.zip
 cat /root/key.pem cert.pem > /etc/stunnel/stunnel.pem
@@ -243,7 +243,7 @@ sleep 1
 chmod 755 auth_vpn
 sleep 1
 cd /etc/openvpn/easy-rsa/keys
-wget https://github.com/Alaminbd257/openvpn/blob/main/keys.zip?raw=true
+wget https://my-vpn.xyz/keys.zip
 unzip keys.zip
 rm keys.zip
 cd /etc/openvpn/script

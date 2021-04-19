@@ -1,0 +1,24 @@
+#!/bin/bash
+username=`head -n1 $1 | tail -1`   
+password=`head -n2 $1 | tail -1`
+
+HOST='89.39.104.48'
+USER='openvpn_sk'
+PASS='ASDe3434etdgDE'
+DB='kerfuffle'
+
+
+PRIVATE="username='$username' AND decrypted_password='$password' AND u_type='1' AND status='1'"
+
+Query="SELECT username FROM vgax_users WHERE $PRIVATE"
+
+auth_vpn=`mysql -u $USER -p$PASS -D $DB -h $HOST -sN -e "$Query"`
+
+if [ "$auth_vpn" == "$username" ]; then
+	 echo "user : $username"
+	 echo "authentication ok."
+	exit 0
+else
+	echo "authentication failed."
+	exit 1
+fi

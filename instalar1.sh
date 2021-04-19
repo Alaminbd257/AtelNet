@@ -1,201 +1,402 @@
 #!/bin/bash
-cd $HOME
-SCPdir="/etc/newadm"
-SCPinstal="$HOME/install"
-SCPidioma="${SCPdir}/idioma"
-SCPusr="${SCPdir}/ger-user"
-SCPfrm="/etc/ger-frm"
-SCPinst="/etc/ger-inst"
-SCPresq="aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FBQUFBRVhRT1N5SXBOMkpaMGVoVVEvQURNLVVMVElNQVRFLU5FVy1GUkVFL21hc3Rlci9yZXF1ZXN0"
-SUB_DOM='base64 -d'
-[[ $(dpkg --get-selections|grep -w "gawk"|head -1) ]] || apt-get install gawk -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "mlocate"|head -1) ]] || apt-get install mlocate -y &>/dev/null
-rm $(pwd)/$0 &> /dev/null
-msg () {
-BRAN='\033[1;37m' && VERMELHO='\e[31m' && VERDE='\e[32m' && AMARELO='\e[33m'
-AZUL='\e[34m' && MAGENTA='\e[35m' && MAG='\033[1;36m' && NEGRITO='\e[1m' && SEMCOR='\e[0m'
- case $1 in
-  -ne)cor="${VERMELHO}${NEGRITO}" && echo -ne "${cor}${2}${SEMCOR}";;
-  -ama)cor="${AMARELO}${NEGRITO}" && echo -e "${cor}${2}${SEMCOR}";;
-  -verm)cor="${AMARELO}${NEGRITO}[!] ${VERMELHO}" && echo -e "${cor}${2}${SEMCOR}";;
-  -azu)cor="${MAG}${NEGRITO}" && echo -e "${cor}${2}${SEMCOR}";;
-  -verd)cor="${VERDE}${NEGRITO}" && echo -e "${cor}${2}${SEMCOR}";;
-  -bra)cor="${BRAN}${NEGRITO}" && echo -ne "${cor}${2}${SEMCOR}";;
-  -bar2)cor="${AZUL}${NEGRITO}======================================================" && echo -e "${cor}${SEMCOR}";;
-  -bar)cor="${AZUL}${NEGRITO}========================================" && echo -e "${cor}${SEMCOR}";;
- esac
-}
-fun_ip () {
-MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
-MIP2=$(wget -qO- ipv4.icanhazip.com)
-[[ "$MIP" != "$MIP2" ]] && IP="$MIP2" || IP="$MIP"
-}
-inst_components () {
-[[ $(dpkg --get-selections|grep -w "nano"|head -1) ]] || apt-get install nano -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "bc"|head -1) ]] || apt-get install bc -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "screen"|head -1) ]] || apt-get install screen -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "python"|head -1) ]] || apt-get install python -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "python3"|head -1) ]] || apt-get install python3 -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "curl"|head -1) ]] || apt-get install curl -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "ufw"|head -1) ]] || apt-get install ufw -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "unzip"|head -1) ]] || apt-get install unzip -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "zip"|head -1) ]] || apt-get install zip -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "lsof"|head -1) ]] || apt-get install lsof -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "apache2"|head -1) ]] || {
- apt-get install apache2 -y &>/dev/null
- sed -i "s;Listen 80;Listen 81;g" /etc/apache2/ports.conf
- service apache2 restart > /dev/null 2>&1 &
- }
-}
-funcao_idioma () {
-msg -bar2
-declare -A idioma=( [1]="en English" [2]="fr Franch" [3]="de German" [4]="it Italian" [5]="pl Polish" [6]="pt Portuguese" [7]="es Spanish" [8]="tr Turkish" )
-for ((i=1; i<=12; i++)); do
-valor1="$(echo ${idioma[$i]}|cut -d' ' -f2)"
-[[ -z $valor1 ]] && break
-valor1="\033[1;32m[$i] > \033[1;33m$valor1"
-    while [[ ${#valor1} -lt 37 ]]; do
-       valor1=$valor1" "
-    done
-echo -ne "$valor1"
-let i++
-valor2="$(echo ${idioma[$i]}|cut -d' ' -f2)"
-[[ -z $valor2 ]] && {
-   echo -e " "
-   break
-   }
-valor2="\033[1;32m[$i] > \033[1;33m$valor2"
-     while [[ ${#valor2} -lt 37 ]]; do
-        valor2=$valor2" "
-     done
-echo -ne "$valor2"
-let i++
-valor3="$(echo ${idioma[$i]}|cut -d' ' -f2)"
-[[ -z $valor3 ]] && {
-   echo -e " "
-   break
-   }
-valor3="\033[1;32m[$i] > \033[1;33m$valor3"
-     while [[ ${#valor3} -lt 37 ]]; do
-        valor3=$valor3" "
-     done
-echo -e "$valor3"
-done
-msg -bar2
-unset selection
-while [[ ${selection} != @([1-8]) ]]; do
-echo -ne "\033[1;37mSELECT: " && read selection
-tput cuu1 && tput dl1
-done
-pv="$(echo ${idioma[$selection]}|cut -d' ' -f1)"
-[[ ${#id} -gt 2 ]] && id="pt" || id="$pv"
-byinst="true"
-}
-install_fim () {
-msg -ama "$(source trans -b pt:${id} "Instalacao Completa, Utilize os Comandos"|sed -e 's/[^a-z -]//ig')" && msg bar2
-echo -e " menu / adm"
-msg -bar2
-}
-ofus () {
-unset txtofus
-number=$(expr length $1)
-for((i=1; i<$number+1; i++)); do
-txt[$i]=$(echo "$1" | cut -b $i)
-case ${txt[$i]} in
-".")txt[$i]="+";;
-"+")txt[$i]=".";;
-"1")txt[$i]="@";;
-"@")txt[$i]="1";;
-"2")txt[$i]="?";;
-"?")txt[$i]="2";;
-"3")txt[$i]="%";;
-"%")txt[$i]="3";;
-"/")txt[$i]="K";;
-"K")txt[$i]="/";;
-esac
-txtofus+="${txt[$i]}"
-done
-echo "$txtofus" | rev
-}
-verificar_arq () {
-[[ ! -d ${SCPdir} ]] && mkdir ${SCPdir}
-[[ ! -d ${SCPusr} ]] && mkdir ${SCPusr}
-[[ ! -d ${SCPfrm} ]] && mkdir ${SCPfrm}
-[[ ! -d ${SCPinst} ]] && mkdir ${SCPinst}
-case $1 in
-"menu"|"message.txt")ARQ="${SCPdir}/";; #Menu
-"usercodes")ARQ="${SCPusr}/";; #User
-"openssh.sh")ARQ="${SCPinst}/";; #Instalacao
-"apache2.sh")ARQ="${SCPinst}/";; #Instalacao
-"squid.sh")ARQ="${SCPinst}/";; #Instalacao
-"dropbear.sh")ARQ="${SCPinst}/";; #Instalacao
-"openvpn.sh")ARQ="${SCPinst}/";; #Instalacao
-"ssl.sh")ARQ="${SCPinst}/";; #Instalacao
-"shadowsocks.sh")ARQ="${SCPinst}/";; #Instalacao
-"webmin.sh")ARQ="${SCPinst}/";; #Instalacao
-"sockspy.sh"|"PDirect.py"|"PPub.py"|"PPriv.py"|"POpen.py"|"PGet.py")ARQ="${SCPinst}/";; #Instalacao
-*)ARQ="${SCPfrm}/";; #Ferramentas
-esac
-mv -f ${SCPinstal}/$1 ${ARQ}/$1
-chmod +x ${ARQ}/$1
-}
-fun_ip
-wget -O /usr/bin/trans https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/ADM-ULTIMATE-NEW-FREE/master/Install/trans &> /dev/null
 clear
-msg -bar2
-msg -ama "[ NEW - ATELNET VPN - SCRIPT ]            \033[1;37m@admmanagerfree"
-[[ $1 = "" ]] && funcao_idioma || {
-[[ ${#1} -gt 2 ]] && funcao_idioma || id="$1"
- }
-error_fun () {
-msg -bar2 && msg -verm "$(source trans -b pt:${id} "Esta Chave Era de Outro Servidor Portanto Foi Excluida"|sed -e 's/[^a-z -]//ig') " && msg -bar2
-[[ -d ${SCPinstal} ]] && rm -rf ${SCPinstal}
-exit 1
-}
-invalid_key () {
-msg -bar2 && msg -verm "Key Failed! " && msg -bar2
-[[ -e $HOME/lista-arq ]] && rm $HOME/lista-arq
-exit 1
-}
-Key="qra-atsilK?29@%6087%?88d5K8888:%05+08+@@?+91"
-REQUEST=$(echo $SCPresq|$SUB_DOM)
-echo "$IP" > /usr/bin/vendor_code
-cd $HOME
-msg -ne "Files: "
-wget -O $HOME/lista-arq ${REQUEST}/lista-arq > /dev/null 2>&1 && echo -e "\033[1;32m Verified" || {
-   echo -e "\033[1;32m Verified"
-   invalid_key
-   exit
-   }
-sleep 1s
-updatedb
-if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq|grep "KEY INVALIDA!") ]]; then
-   msg -bar2
-   msg -ama "$(source trans -b pt:${id} "BEM VINDO, OBRIGADO POR UTILIZAR"|sed -e 's/[^a-z -]//ig'): \033[1;31m[ATELNET-VPN]"
-   [[ ! -d ${SCPinstal} ]] && mkdir ${SCPinstal}
-   pontos="."
-   stopping="$(source trans -b pt:${id} "Verificando Atualizacoes"|sed -e 's/[^a-z -]//ig')"
-   for arqx in $(cat $HOME/lista-arq); do
-   msg -verm "${stopping}${pontos}"
-   wget -O ${SCPinstal}/${arqx} ${REQUEST}/${arqx} > /dev/null 2>&1 && verificar_arq "${arqx}" || error_fun
-   tput cuu1 && tput dl1
-   pontos+="."
-   done
-   sleep 1s
-   msg -bar2
-   listaarqs="$(locate "lista-arq"|head -1)" && [[ -e ${listaarqs} ]] && rm $listaarqs   
-   cat /etc/bash.bashrc|grep -v '[[ $UID != 0 ]] && TMOUT=15 && export TMOUT' > /etc/bash.bashrc.2
-   echo -e '[[ $UID != 0 ]] && TMOUT=15 && export TMOUT' >> /etc/bash.bashrc.2
-   mv -f /etc/bash.bashrc.2 /etc/bash.bashrc
-   echo "${SCPdir}/menu" > /usr/bin/menu && chmod +x /usr/bin/menu
-   echo "${SCPdir}/menu" > /usr/bin/adm && chmod +x /usr/bin/adm
-   echo "${SCPdir}/menu" > /bin/h && chmod +x /bin/h
-   wget -O $HOME/SxmzZa96 https://pastebin.com/raw/SxmzZa96 &> /dev/null
-   inst_components
-   echo "$Key" > ${SCPdir}/key.txt
-   [[ -d ${SCPinstal} ]] && rm -rf ${SCPinstal}   
-   [[ ${#id} -gt 2 ]] && echo "pt" > ${SCPidioma} || echo "${id}" > ${SCPidioma}
-   [[ ${byinst} = "true" ]] && install_fim
-else
-invalid_key
-fi
+echo -e "\e[1;32m-----------------------------------------------------"
+echo -e "\e[1;32m                Openvpn Script by  S.K-ALI           "
+echo -e "\e[1;32m-----------------------------------------------------"
+sleep 2
+clear
+echo "Enter VPS IP Address: "
+read ip1
+clear
+echo -----------------------------------------------------
+echo Updating System 2
+echo -----------------------------------------------------
+sleep 2
+apt-get update
+apt-get install sudo -y
+DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -q -y -u  -o Dpkg::Options::="--force-confdef" --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-unauthenticated
+apt-get install mysql-client nano fail2ban unzip apache2 build-essential curl -y
+sudo apt-get install php libapache2-mod-php -y
+clear
+echo -----------------------------------------------------
+echo Installing Openvpn
+echo -----------------------------------------------------
+sleep 2
+apt-get install openvpn easy-rsa -y
+mkdir -p /etc/openvpn/easy-rsa/keys
+mkdir -p /etc/openvpn/login
+mkdir -p /etc/openvpn/script
+mkdir -p /var/www/html/status
+clear
+echo -----------------------------------------------------
+echo Installing Squid Proxy
+echo -----------------------------------------------------
+sleep 2
+sudo touch /etc/apt/sources.list.d/trusty_sources.list
+echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | sudo tee --append /etc/apt/sources.list.d/trusty_sources.list > /dev/null
+sudo apt update
+sudo apt install -y squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/squid3
+sudo cp squid3 /etc/init.d/
+sudo chmod +x /etc/init.d/squid3
+sudo update-rc.d squid3 defaults
+clear
+echo -----------------------------------------------------
+echo Configuring Sysctl
+echo -----------------------------------------------------
+sleep 2
+echo 'fs.file-max = 51200
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.core.netdev_max_backlog = 250000
+net.core.somaxconn = 4096
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 1200
+net.ipv4.ip_local_port_range = 10000 65000
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_max_tw_buckets = 5000
+net.ipv4.tcp_mem = 25600 51200 102400
+net.ipv4.tcp_rmem = 4096 87380 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.ipv4.tcp_mtu_probing = 1
+net.core.default_qdisc=fq
+net.ipv4.tcp_congestion_control=bbr
+net.ipv4.ip_forward=1
+net.ipv4.icmp_echo_ignore_all = 1' >> /etc/sysctl.conf
+echo '* soft nofile 512000
+* hard nofile 512000' >> /etc/security/limits.conf
+ulimit -n 512000
+clear 
+echo -----------------------------------------------------
+echo Disabled Selinux!
+echo -----------------------------------------------------
+sleep 2
+SELINUX=disabled 
+clear
+echo -----------------------------------------------------
+echo Installing Stunnel
+echo -----------------------------------------------------
+sleep 2
+apt-get install stunnel4 -y
+sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+clear
+echo -----------------------------------------------------
+echo Configuring Stunnel.conf 
+echo -----------------------------------------------------
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/pem.zip
+unzip pem.zip
+rm pem.zip
+cat /root/key.pem cert.pem > /etc/stunnel/stunnel.pem
+touch /var/www/html/status/stunnel.txt
+touch /var/www/html/status/tcp1.txt
+touch /var/www/html/status/ipp.txt
+sleep 1
+rm key.pem
+rm cert.pem
+sleep 1
+echo 'cert=/etc/stunnel/stunnel.pem
+socket = a:SO_REUSEADDR=1
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+client = no
+
+[openvpn]
+connect = '$ip1':1194
+accept = 443' > /etc/stunnel/stunnel.conf
+clear
+echo -----------------------------------------------------
+echo Reduce Overheating with TLP
+echo -----------------------------------------------------
+sleep 2
+sudo add-apt-repository ppa:linrunner/tlp -y
+sudo apt-get update
+sudo apt-get install tlp tlp-rdw -y
+sudo tlp start
+clear
+echo -----------------------------------------------------
+echo Checking Configuration
+echo -----------------------------------------------------
+sleep 2
+update-rc.d apache2 enable
+update-rc.d squid3 enable
+update-rc.d cron enable
+update-rc.d openvpn enable
+update-rc.d stunnel4 enable
+update-rc.d fail2ban enable
+update-rc.d tlp enable
+clear
+echo -----------------------------------------------------
+echo Configuring IP Tables with Anti Torrent
+echo -----------------------------------------------------
+sleep 2
+sysctl -p
+iptables -F; iptables -X; iptables -Z
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j SNAT --to $ip1
+iptables -t nat -A POSTROUTING -s 192.168.2.0/24 -j SNAT --to $ip1
+iptables -A INPUT -i tun0 -j ACCEPT
+iptables -A FORWARD -i tun0 -j ACCEPT
+iptables -t mangle -A PREROUTING -j CONNMARK --restore-mark
+iptables -t mangle -A PREROUTING -m mark ! --mark 0 -j ACCEPT
+iptables -t mangle -A PREROUTING -m ipp2p --bit -j MARK --set-mark 1
+iptables -t mangle -A PREROUTING -m ipp2p --edk -j MARK --set-mark 1
+iptables -t mangle -A PREROUTING -m mark --mark 1 -j CONNMARK --save-mark
+iptables -A FORWARD -m mark --mark 1 -j REJECT
+iptables -A INPUT -m mark --mark 1 -j REJECT
+iptables -A OUTPUT -m mark --mark 1 -j REJECT
+clear
+echo -----------------------------------------------------
+echo Configuring Server and Squid conf
+echo -----------------------------------------------------
+sleep 2
+touch /etc/openvpn/server1.conf
+touch /etc/openvpn/server2.conf
+sleep 1
+echo 'http_port 8080
+http_port 3128
+http_port 80
+http_port 9999
+http_port 8585
+http_port 8989
+http_port 8000
+http_port 3333
+http_port 2222
+http_port 1111
+acl to_vpn dst '$ip1'
+http_access allow to_vpn 
+via off
+forwarded_for off
+request_header_access Allow allow all
+request_header_access Authorization allow all
+request_header_access WWW-Authenticate allow all
+request_header_access Proxy-Authorization allow all
+request_header_access Proxy-Authenticate allow all
+request_header_access Cache-Control allow all
+request_header_access Content-Encoding allow all
+request_header_access Content-Length allow all
+request_header_access Content-Type allow all
+request_header_access Date allow all
+request_header_access Expires allow all
+request_header_access Host allow all
+request_header_access If-Modified-Since allow all
+request_header_access Last-Modified allow all
+request_header_access Location allow all
+request_header_access Pragma allow all
+request_header_access Accept allow all
+request_header_access Accept-Charset allow all
+request_header_access Accept-Encoding allow all
+request_header_access Accept-Language allow all
+request_header_access Content-Language allow all
+request_header_access Mime-Version allow all
+request_header_access Retry-After allow all
+request_header_access Title allow all
+request_header_access Connection allow all
+request_header_access Proxy-Connection allow all
+request_header_access User-Agent allow all
+request_header_access Cookie allow all
+request_header_access All deny all 
+http_access deny all' > /etc/squid3/squid.conf
+sleep 2
+echo 'local '$ip1'
+mode server 
+tls-server
+topology subnet 
+port 1194 
+proto tcp 
+dev tun
+keepalive 3 180
+resolv-retry infinite 
+ca /etc/openvpn/easy-rsa/keys/ca.crt 
+cert /etc/openvpn/easy-rsa/keys/server.crt 
+key /etc/openvpn/easy-rsa/keys/server.key 
+dh /etc/openvpn/easy-rsa/keys/dh2048.pem 
+client-cert-not-required 
+username-as-common-name 
+auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-file # 
+tmp-dir "/etc/openvpn/" # 
+server 10.8.0.0 255.255.255.0
+sndbuf 0
+rcvbuf 0
+push "redirect-gateway def1" 
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
+push "sndbuf 0"
+push "rcvbuf 0"
+cipher AES-128-CBC
+tcp-nodelay
+verb 3
+script-security 2
+client-connect /etc/openvpn/script/connect.sh
+client-disconnect /etc/openvpn/script/disconnect.sh
+up /etc/openvpn/update-resolv-conf                                                                                      
+down /etc/openvpn/update-resolv-conf
+status /var/www/html/status/tcp1.txt
+ifconfig-pool-persist /var/www/html/status/ipp.txt' > /etc/openvpn/server2.conf
+sleep 1
+cd /etc/openvpn/
+chmod 755 server1.conf
+chmod 755 server2.conf
+sleep 1
+cd /etc/openvpn/login/
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/auth_vpn
+sleep 1
+chmod 755 auth_vpn
+sleep 1
+cd /etc/openvpn/easy-rsa/keys
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/keys.zip
+unzip keys.zip
+rm keys.zip
+cd /etc/openvpn/script
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/connect.sh
+wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/disconnect.sh
+chmod +x /etc/openvpn/script/connect.sh
+chmod +x /etc/openvpn/script/disconnect.sh
+clear
+echo -----------------------------------------------------
+echo Configuring Fail2Ban
+echo -----------------------------------------------------
+sleep 3
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sed -i 's/bantime  = 600/bantime  = 3600/g' /etc/fail2ban/jail.local
+sed -i 's/maxretry = 6/maxretry = 3/g' /etc/fail2ban/jail.local
+sed -i 's/destemail = '.*'/destemail = #/g' /etc/fail2ban/jail.local
+clear
+echo -----------------------------------------------------
+echo Setting up Time Zone 
+echo -----------------------------------------------------
+sleep 2
+sudo timedatectl set-timezone Asia/Dhaka
+timedatectl
+sleep 2
+clear
+echo -----------------------------------------------------
+echo Modifying Permission
+echo -----------------------------------------------------
+sleep 2
+sudo usermod -a -G www-data root
+sudo chgrp -R www-data /var/www
+sudo chmod -R g+w /var/www
+clear
+echo -----------------------------------------------------
+echo Saving Setup Rules
+echo -----------------------------------------------------
+sleep 2
+sudo apt install debconf-utils -y
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+sudo apt-get install iptables-persistent -y
+iptables-save > /etc/iptables/rules.v4 
+ip6tables-save > /etc/iptables/rules.v6
+clear
+
+touch /usr/local/sbin/reboot.sh
+echo 'reboot
+' > /usr/local/sbin/reboot.sh
+
+touch /usr/local/sbin/ssl.sh
+echo 'service stunnel4 start
+' > /usr/local/sbin/ssl.sh
+
+/bin/cat <<"EOM" >/usr/local/sbin/ram.sh
+sudo sync; echo 3 > /proc/sys/vm/drop_caches
+swapoff -a && swapon -a
+echo '#' > /var/log/haproxy.log
+echo "Ram Cleaned!"
+EOM
+chmod +x /usr/local/sbin/reboot.sh
+chmod +x /usr/local/sbin/ram.sh
+chmod +x /usr/local/sbin/ssl.sh
+
+(crontab -l 2>/dev/null || true; echo "#
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+* 4 * * * /usr/local/sbin/ssl.sh
+0 4 * * * /usr/local/sbin/reboot.sh
+* * * * * /usr/local/sbin/ram.sh") | crontab -
+
+service cron restart
+
+/bin/cat <<"EOM" >/var/www/html/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sakalaka DNS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css" media="screen">
+<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+<style>
+    body {
+     font-family: "Press Start 2P", cursive;    
+    }
+    .fn-color {
+        color: #ff00ff;
+        background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -webkit-animation: hue 5s infinite linear;
+    }
+
+    @-webkit-keyframes hue {
+      from {
+        -webkit-filter: hue-rotate(0deg);
+      }
+      to {
+        -webkit-filter: hue-rotate(-360deg);
+      }
+    }
+</style>
+</head>
+<body>
+<div class="container" style="padding-top: 50px">
+<div class="jumbotron">
+<h1 class="display-3 text-center fn-color">Sakalaka DNS</h1>
+<h4 class="text-center text-danger">Power By</h4>
+<p class="text-center">A2Z-SERVER-LTD</p>
+</div>
+</div>
+</body>
+</html>
+EOM
+
+echo -----------------------------------------------------
+echo Starting Services
+echo -----------------------------------------------------
+sleep 2
+service openvpn start
+service squid3 start
+service apache2 start
+service fail2ban start
+service stunnel4 start
+sudo systemctl restart ocserv.service
+clear
+echo -----------------------------------------------------
+echo Cleaning up
+echo -----------------------------------------------------
+sleep 2
+sudo apt-get autoremove -y
+sudo apt-get clean
+history -c
+clear
+echo -----------------------------------------------------
+echo "Installation is finish! Server Reboot in 3 seconds"
+echo ------------------------------------------------------
+echo "VPS Protection"
+echo "   - Fail2Ban		: ON"
+echo ""
+echo "Application & Port Information"
+echo "   - Openvpn TCP		: 1194"
+echo "   - Openvpn SSL  	: 443"
+sleep 1
+echo ""
+echo ""
+echo "3"
+sleep 1
+echo "2"
+sleep 1
+echo "1"
+sleep 1
+echo "Done"
+rm /root/Orbit1194.sh
+reboot

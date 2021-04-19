@@ -36,7 +36,7 @@ sudo touch /etc/apt/sources.list.d/trusty_sources.list
 echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | sudo tee --append /etc/apt/sources.list.d/trusty_sources.list > /dev/null
 sudo apt update
 sudo apt install -y squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/squid3
+wget https://raw.githubusercontent.com/Alaminbd257/openvpn/main/squid3
 sudo cp squid3 /etc/init.d/
 sudo chmod +x /etc/init.d/squid3
 sudo update-rc.d squid3 defaults
@@ -84,7 +84,7 @@ clear
 echo -----------------------------------------------------
 echo Configuring Stunnel.conf 
 echo -----------------------------------------------------
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/pem.zip
+wget https://github.com/Alaminbd257/openvpn/blob/main/pem.zip?raw=true
 unzip pem.zip
 rm pem.zip
 cat /root/key.pem cert.pem > /etc/stunnel/stunnel.pem
@@ -238,17 +238,17 @@ chmod 755 server1.conf
 chmod 755 server2.conf
 sleep 1
 cd /etc/openvpn/login/
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/auth_vpn
+wget https://raw.githubusercontent.com/Alaminbd257/openvpn/main/auth_vpn
 sleep 1
 chmod 755 auth_vpn
 sleep 1
 cd /etc/openvpn/easy-rsa/keys
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/keys.zip
+wget https://github.com/Alaminbd257/openvpn/blob/main/keys.zip?raw=true
 unzip keys.zip
 rm keys.zip
 cd /etc/openvpn/script
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/connect.sh
-wget http://134.209.105.26/orbit_ovpn/bidek_yt1194/disconnect.sh
+wget https://raw.githubusercontent.com/Alaminbd257/openvpn/main/connect.sh
+wget https://raw.githubusercontent.com/Alaminbd257/openvpn/main/disconnect.sh
 chmod +x /etc/openvpn/script/connect.sh
 chmod +x /etc/openvpn/script/disconnect.sh
 clear
@@ -398,5 +398,5 @@ sleep 1
 echo "1"
 sleep 1
 echo "Done"
-rm /root/Orbit1194.sh
+rm /root/instalar1.sh
 reboot

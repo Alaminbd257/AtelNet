@@ -1,7 +1,7 @@
 #!/bin/bash
 clear
 echo -e "\e[1;32m-----------------------------------------------------"
-echo -e "\e[1;32m                Openvpn Script by  S.K-ALI           "
+echo -e "\e[1;32m                Openvpn Script by  Al-amin           "
 echo -e "\e[1;32m-----------------------------------------------------"
 sleep 2
 clear

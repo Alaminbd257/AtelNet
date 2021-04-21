@@ -1,4 +1,21 @@
 #!/bin/bash
+#
+#####################
+### Configuration ###
+#####################
+
+### API Alias
+Filename_alias='myvpn';
+
+
+
+
+# MySQL Remote Server side
+DatabaseHost='209.159.147.190';
+DatabaseName='routervp_routervp';
+DatabaseUser='routervp_routervp';
+DatabasePass='KuD%2fsq4I+l';
+DatabasePort='3306';
 clear
 echo -e "\e[1;32m-----------------------------------------------------"
 echo -e "\e[1;32m                Openvpn Script by  Al-amin           "

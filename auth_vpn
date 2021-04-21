@@ -2,10 +2,14 @@
 username=`head -n1 $1 | tail -1`   
 password=`head -n2 $1 | tail -1`
 
-HOST='209.159.147.190'
-USER='routervp_routervp'
-PASS='KuD%2fsq4I+l'
-DB='routervp_routervp'
+### MySQL Remote Server side
+DatabaseHost='209.159.147.190';
+DatabaseName='routervp_routervp';
+DatabaseUser='routervp_routervp';
+DatabasePass='KuD%2fsq4I+l';
+DatabasePort='3306';
+#####################
+#####################
 
 
 PRIVATE="username='$username' AND decrypted_password='$password' AND u_type='1' AND status='1'"

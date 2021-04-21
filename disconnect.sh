@@ -1,9 +1,9 @@
 #!/bin/bash
 
-HOST='89.39.104.48'
-USER='openvpn_sk'
-PASS='ASDe3434etdgDE'
-DB='kerfuffle'
+HOST='209.159.147.190'
+USER='routervp_routervp'
+PASS='KuD%2fsq4I+l'
+DB='routervp_routervp'
 
 connection_status="offline"
 username="$common_name"

@@ -11,4 +11,4 @@ DatabasePort='3306';
 
 connection_status="Online"
 username="$common_name"
-mysql -u $USER -p$PASS -D $DB -h $HOST -sN -e "UPDATE vgax_users SET connection_status='$connection_status', connection_start='yes' WHERE username='$username'"
+$mysqli = new MySQLi($DB_host,$DB_user,$DB_pass,$DB_name -sN -e "UPDATE vgax_users SET connection_status='$connection_status', connection_start='yes' WHERE username='$username'"

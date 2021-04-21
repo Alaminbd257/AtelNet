@@ -1,9 +1,13 @@
 #!/bin/bash
 
-HOST='209.159.147.190'
-USER='routervp_routervp'
-PASS='KuD%2fsq4I+l'
-DB='routervp_routervp'
+### MySQL Remote Server side
+DatabaseHost='209.159.147.190';
+DatabaseName='routervp_routervp';
+DatabaseUser='routervp_routervp';
+DatabasePass='KuD%2fsq4I+l';
+DatabasePort='3306';
+#####################
+#####################
 
 connection_status="Online"
 username="$common_name"

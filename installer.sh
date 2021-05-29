@@ -53,7 +53,7 @@ push "rcvbuf 393216"
 tun-mtu 1400 
 mssfix 1360
 verb 3
-#comp-lzo
+comp-lzo
 script-security 2
 up /etc/openvpn/update-resolv-conf                                                                                      
 down /etc/openvpn/update-resolv-conf
@@ -85,7 +85,7 @@ push "rcvbuf 393216"
 tun-mtu 1400 
 mssfix 1360
 verb 3
-#comp-lzo
+comp-lzo
 script-security 2
 up /etc/openvpn/update-resolv-conf                                                                                      
 down /etc/openvpn/update-resolv-conf

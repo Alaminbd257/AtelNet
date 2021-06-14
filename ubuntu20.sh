@@ -570,8 +570,6 @@ EOM
 sudo chmod +x /etc/init.d/squid3
 sudo update-rc.d squid3 defaults
 
-
-apt-get install squid -y
 echo "http_port 8080
 acl to_vpn dst `curl ipinfo.io/ip`
 http_access allow to_vpn 

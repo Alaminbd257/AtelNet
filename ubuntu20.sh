@@ -355,49 +355,220 @@ touch /var/www/html/stat/udpstatus.txt
 touch /var/www/html/stat/tcpstatus.txt
 chmod 755 /var/www/html/stat/*
 
-echo 'fs.file-max = 51200
-net.core.rmem_max = 67108864
-net.core.wmem_max = 67108864
-net.core.netdev_max_backlog = 250000
-net.core.somaxconn = 4096
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_fin_timeout = 30
-net.ipv4.tcp_keepalive_time = 1200
-net.ipv4.ip_local_port_range = 10000 65000
-net.ipv4.tcp_max_syn_backlog = 8192
-net.ipv4.tcp_max_tw_buckets = 5000
-net.ipv4.tcp_mem = 25600 51200 102400
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
-net.ipv4.tcp_mtu_probing = 1
-net.core.default_qdisc=fq
-net.ipv4.tcp_congestion_control=bbr
-net.ipv4.ip_forward=1
-net.ipv4.icmp_echo_ignore_all = 1' >> /etc/sysctl.conf
 
-echo '* soft nofile 512000
-* hard nofile 512000' >> /etc/security/limits.conf
-ulimit -n 512000
-SELINUX=disabled 
-sysctl -p
+sudo touch /etc/apt/sources.list.d/trusty_sources.list
+echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | sudo tee --append /etc/apt/sources.list.d/trusty_sources.list > /dev/null
+sudo apt update -y
 
-iptables -F; iptables -X; iptables -Z
-iptables -t nat -A POSTROUTING -s 172.20.0.0/16 -o eth0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 172.20.0.0/16 -o eth0 -j SNAT --to-source `curl ipecho.net/plain`
-iptables -t nat -A POSTROUTING -s 172.20.0.0/16 -o ens3 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 172.20.0.0/16 -o ens3 -j SNAT --to-source `curl ipecho.net/plain`
-iptables -t nat -A POSTROUTING -s 172.30.0.0/16 -o eth0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 172.30.0.0/16 -o eth0 -j SNAT --to-source `curl ipecho.net/plain`
-iptables -t nat -A POSTROUTING -s 172.30.0.0/16 -o ens3 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 172.30.0.0/16 -o ens3 -j SNAT --to-source `curl ipecho.net/plain`
+sudo apt install -y squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6
+/bin/cat <<"EOM" >/etc/init.d/squid3
+#! /bin/sh
+#
+# squid		Startup script for the SQUID HTTP proxy-cache.
+#
+# Version:	@(#)squid.rc  1.0  07-Jul-2006  luigi@debian.org
+#
+### BEGIN INIT INFO
+# Provides:          squid
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Should-Start:      $named
+# Should-Stop:       $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Squid HTTP Proxy version 3.x
+### END INIT INFO
 
+NAME=squid3
+DESC="Squid HTTP Proxy"
+DAEMON=/usr/sbin/squid3
+PIDFILE=/var/run/$NAME.pid
+CONFIG=/etc/squid3/squid.conf
+SQUID_ARGS="-YC -f $CONFIG"
 
-sudo apt install debconf-utils -y
-echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
-echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
-sudo apt-get install iptables-persistent -y
-iptables-save > /etc/iptables/rules.v4 
-ip6tables-save > /etc/iptables/rules.v6
+[ ! -f /etc/default/squid ] || . /etc/default/squid
+
+. /lib/lsb/init-functions
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+[ -x $DAEMON ] || exit 0
+
+ulimit -n 65535
+
+find_cache_dir () {
+	w=" 	" # space tab
+        res=`$DAEMON -k parse -f $CONFIG 2>&1 |
+		grep "Processing:" |
+		sed s/.*Processing:\ // |
+		sed -ne '
+			s/^['"$w"']*'$1'['"$w"']\+[^'"$w"']\+['"$w"']\+\([^'"$w"']\+\).*$/\1/p;
+			t end;
+			d;
+			:end q'`
+        [ -n "$res" ] || res=$2
+        echo "$res"
+}
+
+grepconf () {
+	w=" 	" # space tab
+        res=`$DAEMON -k parse -f $CONFIG 2>&1 |
+		grep "Processing:" |
+		sed s/.*Processing:\ // |
+		sed -ne '
+			s/^['"$w"']*'$1'['"$w"']\+\([^'"$w"']\+\).*$/\1/p;
+			t end;
+			d;
+			:end q'`
+	[ -n "$res" ] || res=$2
+	echo "$res"
+}
+
+create_run_dir () {
+	run_dir=/var/run/squid3
+	usr=`grepconf cache_effective_user proxy`
+	grp=`grepconf cache_effective_group proxy`
+
+	if [ "$(dpkg-statoverride --list $run_dir)" = "" ] &&
+	   [ ! -e $run_dir ] ; then
+		mkdir -p $run_dir
+	  	chown $usr:$grp $run_dir
+		[ -x /sbin/restorecon ] && restorecon $run_dir
+	fi
+}
+
+start () {
+	cache_dir=`find_cache_dir cache_dir`
+	cache_type=`grepconf cache_dir`
+	run_dir=/var/run/squid3
+
+	#
+	# Create run dir (needed for several workers on SMP)
+	#
+	create_run_dir
+
+	#
+	# Create spool dirs if they don't exist.
+	#
+	if test -d "$cache_dir" -a ! -d "$cache_dir/00"
+	then
+		log_warning_msg "Creating $DESC cache structure"
+		$DAEMON -z -f $CONFIG
+		[ -x /sbin/restorecon ] && restorecon -R $cache_dir
+	fi
+
+	umask 027
+	ulimit -n 65535
+	cd $run_dir
+	start-stop-daemon --quiet --start \
+		--pidfile $PIDFILE \
+		--exec $DAEMON -- $SQUID_ARGS < /dev/null
+	return $?
+}
+
+stop () {
+	PID=`cat $PIDFILE 2>/dev/null`
+	start-stop-daemon --stop --quiet --pidfile $PIDFILE --exec $DAEMON
+	#
+	#	Now we have to wait until squid has _really_ stopped.
+	#
+	sleep 2
+	if test -n "$PID" && kill -0 $PID 2>/dev/null
+	then
+		log_action_begin_msg " Waiting"
+		cnt=0
+		while kill -0 $PID 2>/dev/null
+		do
+			cnt=`expr $cnt + 1`
+			if [ $cnt -gt 24 ]
+			then
+				log_action_end_msg 1
+				return 1
+			fi
+			sleep 5
+			log_action_cont_msg ""
+		done
+		log_action_end_msg 0
+		return 0
+	else
+		return 0
+	fi
+}
+
+cfg_pidfile=`grepconf pid_filename`
+if test "${cfg_pidfile:-none}" != "none" -a "$cfg_pidfile" != "$PIDFILE"
+then
+	log_warning_msg "squid.conf pid_filename overrides init script"
+	PIDFILE="$cfg_pidfile"
+fi
+
+case "$1" in
+    start)
+	res=`$DAEMON -k parse -f $CONFIG 2>&1 | grep -o "FATAL: .*"`
+	if test -n "$res";
+	then
+		log_failure_msg "$res"
+		exit 3
+	else
+		log_daemon_msg "Starting $DESC" "$NAME"
+		if start ; then
+			log_end_msg $?
+		else
+			log_end_msg $?
+		fi
+	fi
+	;;
+    stop)
+	log_daemon_msg "Stopping $DESC" "$NAME"
+	if stop ; then
+		log_end_msg $?
+	else
+		log_end_msg $?
+	fi
+	;;
+    reload|force-reload)
+	res=`$DAEMON -k parse -f $CONFIG 2>&1 | grep -o "FATAL: .*"`
+	if test -n "$res";
+	then
+		log_failure_msg "$res"
+		exit 3
+	else
+		log_action_msg "Reloading $DESC configuration files"
+	  	start-stop-daemon --stop --signal 1 \
+			--pidfile $PIDFILE --quiet --exec $DAEMON
+		log_action_end_msg 0
+	fi
+	;;
+    restart)
+	res=`$DAEMON -k parse -f $CONFIG 2>&1 | grep -o "FATAL: .*"`
+	if test -n "$res";
+	then
+		log_failure_msg "$res"
+		exit 3
+	else
+		log_daemon_msg "Restarting $DESC" "$NAME"
+		stop
+		if start ; then
+			log_end_msg $?
+		else
+			log_end_msg $?
+		fi
+	fi
+	;;
+    status)
+	status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit 3
+	;;
+    *)
+	echo "Usage: /etc/init.d/$NAME {start|stop|reload|force-reload|restart|status}"
+	exit 3
+	;;
+esac
+
+exit 0
+EOM
+
+sudo chmod +x /etc/init.d/squid3
+sudo update-rc.d squid3 defaults
 
 
 apt-get install squid -y

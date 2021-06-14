@@ -519,7 +519,7 @@ sleep 2
 
 #API Details
 VPN_Owner='Tknetwork';
-API_LINK='https://voltnetvpn.com/api/authentication';
+API_LINK='http://voltnetvpn.com/api/authentication';
 API_KEY='Tknetwork';
 
 
